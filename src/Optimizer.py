@@ -61,7 +61,7 @@ class AdaGrad(Optimizer):
         self.epsilon = epsilon
         self.accumulated_grads: List[Tuple[np.ndarray, np.ndarray]] = []
 
-    def update(self, layers: List[Layer], grads: List[Tuple[np.ndarray, np.ndarray]]):
+    def update(self, layers, grads):
         """
         Updates the parameters of each layer based on the gradients, the learning rate, and an adaptive term.
         :param layers: list of layers
@@ -102,7 +102,7 @@ class Adam(Optimizer):
         self.v: List[Tuple[np.ndarray, np.ndarray]] = []
         self.t = 0
 
-    def update(self, layers: List[Layer], grads: List[Tuple[np.ndarray, np.ndarray]]) -> None:
+    def update(self, layers, grads):
         """
         Perform the Adam update on parameters.
 

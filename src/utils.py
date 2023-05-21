@@ -1,12 +1,13 @@
-import numpy as np
+import warnings
+from functools import partial
 from typing import Tuple, Any, Dict
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 from numpy import ndarray
 from sklearn.datasets import load_wine
-from functools import partial
-import warnings
 from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.model_selection import StratifiedKFold
 
@@ -16,12 +17,14 @@ from src.Optimizer import SGD, Adam, AdaGrad
 warnings.filterwarnings('ignore')
 sns.set()
 
+
 def load_data():
     '''
     Loads wine data and splits them to X and Y
     '''
     data = load_wine()
     return data['data'], data['target']
+
 
 def instantialize_from_args(model_args: Dict[str, Any]) -> 'Neural Network':
     """
@@ -65,7 +68,8 @@ def evaluate_model(X: np.ndarray, Y: np.ndarray, model_args: Dict[str, Any], n_s
     return np.mean(acc)
 
 
-def random_search(X: np.ndarray, Y: np.ndarray, iterations: int, reps: int, pool: Any = __builtins__) -> Tuple[Dict[str, Any], float]:
+def random_search(X: np.ndarray, Y: np.ndarray, iterations: int, reps: int, pool: Any = __builtins__) -> Tuple[
+    Dict[str, Any], float]:
     """
     Performs a random search to find best hyperparameters for the model.
     `iterations` different hyperparameters are randomized, and evaluated `reps` times (with different random seeds)
@@ -99,7 +103,7 @@ def random_search(X: np.ndarray, Y: np.ndarray, iterations: int, reps: int, pool
                      'learning_rate': 10 ** np.random.normal(-3, 0),
                  },
              ])
-        ) for i in range(iterations)
+             ) for i in range(iterations)
     ]
     accs = np.array([
         list(pool.map(partial(evaluate_model, X, Y), [a | {'random_seed': j} for a in args]))
@@ -110,7 +114,7 @@ def random_search(X: np.ndarray, Y: np.ndarray, iterations: int, reps: int, pool
     return args[i], accs[i]
 
 
-def eval_and_plot(X: np.ndarray, Y: np.ndarray, model_args: Dict[str, Any], verbose: bool = True):
+def eval_and_plot(X: np.ndarray, Y: np.ndarray, model_args: Dict[str, Any], best_args, verbose: bool = True):
     """
     Conducts model evaluation using Stratified K-Fold cross-validation and plots
     the accuracy and loss curves for the training and validation sets.
@@ -143,6 +147,7 @@ def eval_and_plot(X: np.ndarray, Y: np.ndarray, model_args: Dict[str, Any], verb
     plt.subplot(1, 2, 2)
     sns.lineplot(pd.DataFrame(history)[['train_loss', 'val_loss']])
     plt.ylim(0, 1.05)
+    plt.show()
 
     if verbose:
         print(f"Evaluate model on best args : {best_args}")
@@ -150,9 +155,10 @@ def eval_and_plot(X: np.ndarray, Y: np.ndarray, model_args: Dict[str, Any], verb
         print(f"val_accuracy: {history['val_accuracy'][-1]}")
 
         print(ConfusionMatrixDisplay.from_predictions(y_true, y_pred))
+        plt.show()
 
 
-def plot_factor_dependency(name, values, default_args, reps=5, xlog=False, pool=__builtins__, show=True):
+def plot_factor_dependency(name, values, default_args, X_train, y_train, reps=5, xlog=False, pool=__builtins__, show=True):
     """
     This function evaluates and plots the effect of a particular model parameter (hyperparameter) on
     the accuracy of a given model.
@@ -200,14 +206,3 @@ def plot_factor_dependency(name, values, default_args, reps=5, xlog=False, pool=
     plt.title(f'{name}\nfound best {name}={row[name]} with average accuracy {row["accuracy"] * 100:.2f}%')
     if show:
         plt.show()
-
-
-
-
-
-
-
-
-
-
-
